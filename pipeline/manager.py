@@ -9,6 +9,7 @@ from pipeline.base import PipelineStage
 from pipeline.discovery import URLDiscoveryStage, LinkDiscoveryStage
 from pipeline.fetcher import HTTPFetcherStage
 from pipeline.extractor import ContentExtractionStage
+from pipeline.analyzer import ContentAnalysisStage
 from storage.checkpoints import CheckpointManager, URLQueue
 from storage.data_store import DataStore
 from config import CrawlConfig
@@ -31,7 +32,8 @@ class PipelineManager:
             'url_discovery': URLDiscoveryStage(config),
             'link_discovery': LinkDiscoveryStage(config),
             'http_fetcher': HTTPFetcherStage(config),
-            'content_extractor': ContentExtractionStage(config.dict() if hasattr(config, 'dict') else {})
+            'content_extractor': ContentExtractionStage(config.dict() if hasattr(config, 'dict') else {}),
+            'content_analyzer': ContentAnalysisStage(config.dict() if hasattr(config, 'dict') else {})
         }
         
         # Current job state
@@ -160,6 +162,7 @@ class PipelineManager:
         fetcher_stage = self.stages['http_fetcher']
         link_discovery_stage = self.stages['link_discovery']
         content_extractor_stage = self.stages['content_extractor']
+        content_analyzer_stage = self.stages['content_analyzer']
         
         processed_count = 0
         consecutive_empty_batches = 0
@@ -188,12 +191,18 @@ class PipelineManager:
                         # Extract content from the fetched page
                         extracted_page = content_extractor_stage.process_item(fetched_page, self.current_job)
                         
+                        # Analyze content for business intelligence
+                        if extracted_page.status == PageStatus.EXTRACTED:
+                            analyzed_page = content_analyzer_stage.process_item(extracted_page, self.current_job)
+                        else:
+                            analyzed_page = extracted_page
+                        
                         # Discover new links
-                        link_results = list(link_discovery_stage.process_item(extracted_page, self.current_job))
+                        link_results = list(link_discovery_stage.process_item(analyzed_page, self.current_job))
                         
                         # Separate the original page from newly discovered pages
                         for result in link_results:
-                            if result.url == extracted_page.url:
+                            if result.url == analyzed_page.url:
                                 completed_pages.append(result)
                             else:
                                 new_pages.append(result)
@@ -210,9 +219,9 @@ class PipelineManager:
             
             # Update queues
             if completed_pages:
-                self.url_queue.mark_completed(completed_pages)
+                self.url_queue.move_to_processed_queue(completed_pages)
             if failed_pages:
-                self.url_queue.mark_failed(failed_pages)
+                self.url_queue.move_to_failed_queue(failed_pages)
             if new_pages:
                 # Filter new pages to avoid duplicates and respect limits
                 filtered_new_pages = self._filter_new_pages(new_pages)

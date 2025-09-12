@@ -57,6 +57,10 @@ class Page:
     emails: Set[str] = field(default_factory=set)
     social_media: Dict[str, Set[str]] = field(default_factory=dict)
     
+    # Analysis results
+    analysis_results: Optional[Dict] = None
+    analyzed_at: Optional[datetime] = None
+    
     # Error tracking
     error_message: Optional[str] = None
     retry_count: int = 0
@@ -110,6 +114,13 @@ class Page:
         self.status = PageStatus.FAILED
         self.error_message = error
         self.processed_at = _get_current_time()
+    
+    def add_error(self, error: str) -> None:
+        """Add error without changing status (for non-fatal errors)"""
+        if self.error_message:
+            self.error_message += f"; {error}"
+        else:
+            self.error_message = error
 
 
 @dataclass

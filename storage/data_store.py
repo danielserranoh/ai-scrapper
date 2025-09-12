@@ -33,15 +33,20 @@ class DataStore:
                 fieldnames = [
                     'url', 'status', 'status_code', 'content_type', 'content_length',
                     'title', 'domain', 'subdomain', 'path', 'discovered_at',
-                    'fetched_at', 'processed_at', 'error_message', 'retry_count',
+                    'fetched_at', 'processed_at', 'analyzed_at', 'error_message', 'retry_count',
                     'internal_links_count', 'external_links_count', 'emails_count',
-                    'social_profiles_count'
+                    'social_profiles_count', 'page_type', 'funding_references',
+                    'collaboration_indicators', 'technology_transfer', 'industry_connections'
                 ]
                 
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
                 
                 for page in pages:
+                    # Extract analysis results if available
+                    analysis = page.analysis_results or {}
+                    content_indicators = analysis.get('content_indicators', {})
+                    
                     row = {
                         'url': page.url,
                         'status': page.status.value,
@@ -55,12 +60,18 @@ class DataStore:
                         'discovered_at': page.discovered_at.isoformat() if page.discovered_at else None,
                         'fetched_at': page.fetched_at.isoformat() if page.fetched_at else None,
                         'processed_at': page.processed_at.isoformat() if page.processed_at else None,
+                        'analyzed_at': page.analyzed_at.isoformat() if page.analyzed_at else None,
                         'error_message': page.error_message,
                         'retry_count': page.retry_count,
                         'internal_links_count': len(page.internal_links),
                         'external_links_count': len(page.external_links),
                         'emails_count': len(page.emails),
-                        'social_profiles_count': sum(len(profiles) for profiles in page.social_media.values())
+                        'social_profiles_count': sum(len(profiles) for profiles in page.social_media.values()),
+                        'page_type': analysis.get('page_type', ''),
+                        'funding_references': content_indicators.get('funding_references', 0),
+                        'collaboration_indicators': content_indicators.get('collaboration_indicators', 0),
+                        'technology_transfer': content_indicators.get('technology_transfer', 0),
+                        'industry_connections': content_indicators.get('industry_connections', 0)
                     }
                     writer.writerow(row)
             
@@ -178,7 +189,9 @@ class DataStore:
         
         # Calculate statistics
         total_pages = len(pages)
-        successful_pages = len([p for p in pages if p.status == PageStatus.FETCHED])
+        # Count pages that were successfully fetched and processed (any status beyond FETCHED)
+        successful_statuses = {PageStatus.FETCHED, PageStatus.EXTRACTED, PageStatus.ANALYZED}
+        successful_pages = len([p for p in pages if p.status in successful_statuses])
         failed_pages = len([p for p in pages if p.status == PageStatus.FAILED])
         
         # Content type breakdown
@@ -271,6 +284,44 @@ class DataStore:
         except Exception as e:
             self.logger.error(f"Failed to load pages from {file_path}: {e}")
             return []
+    
+    def save_analytics_summary(self, job_id: str, analytics_data: dict, filename: str = None) -> str:
+        """Save analytics summary to JSON file"""
+        if not filename:
+            from utils.common import get_timestamp_string
+            timestamp = get_timestamp_string()
+            filename = f"{job_id}_analytics_{timestamp}.json"
+        
+        analytics_path = self.base_dir / filename
+        
+        try:
+            # Convert dataclass objects to dictionaries for serialization
+            serializable_data = {}
+            
+            for key, value in analytics_data.items():
+                if hasattr(value, '__dict__'):
+                    # Handle dataclass objects
+                    serializable_data[key] = value.__dict__
+                elif isinstance(value, dict):
+                    # Handle nested dictionaries with dataclass values
+                    serializable_data[key] = {}
+                    for sub_key, sub_value in value.items():
+                        if hasattr(sub_value, '__dict__'):
+                            serializable_data[key][sub_key] = sub_value.__dict__
+                        else:
+                            serializable_data[key][sub_key] = sub_value
+                else:
+                    serializable_data[key] = value
+            
+            with open(analytics_path, 'w', encoding='utf-8') as f:
+                json.dump(serializable_data, f, cls=JSONEncoder, indent=2, ensure_ascii=False)
+            
+            self.logger.info(f"Saved analytics summary to {analytics_path}")
+            return str(analytics_path)
+            
+        except Exception as e:
+            self.logger.error(f"Failed to save analytics summary: {e}")
+            raise
     
     def get_job_files(self, job_id: str) -> Dict[str, List[str]]:
         """Get all files associated with a job"""

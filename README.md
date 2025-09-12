@@ -34,8 +34,10 @@ A business intelligence tool for extracting comprehensive information from unive
 
 - **Analyzes website structure**: Pages, subdomains, assets, link relationships
 - **Extracts contact information**: Emails, social media handles by department  
+- **Business intelligence extraction**: Funding references, collaboration indicators, tech transfer activities
+- **Content analysis**: Automatic page classification (faculty, research, department, admissions, etc.)
 - **Creates clean content**: HTML to Markdown for AI knowledge bases
-- **Generates business reports**: CSV exports for sales team analysis
+- **Generates comprehensive reports**: CSV/JSON exports with detailed analytics
 
 ## Architecture
 
@@ -44,12 +46,15 @@ Pipeline-based processing with recovery capabilities:
 
 ## Key Features
 
-- **Modern CLI**: Click-based interface with improved command structure
+- **Business Intelligence Analysis**: Extract funding, collaboration, and tech transfer indicators
+- **Contact Extraction**: Automated email and social media discovery with department mapping
+- **Content Classification**: Smart page categorization (faculty, research, department, etc.)
+- **Modern CLI**: Click-based interface with comprehensive command structure
 - **Adaptive crawling**: Intelligent rate limiting and blocking detection  
 - **Recovery system**: Resume from any failure point with checkpointing
-- **DRY Architecture**: Centralized utilities and error handling
+- **Pipeline-aware Architecture**: Maintainable code with clear stage progression
 - **Content cleaning**: BeautifulSoup + html2text extraction
-- **Export flexibility**: Multiple formats (CSV, JSON, etc.)
+- **Export flexibility**: Populated CSV/JSON exports with no duplicates
 - **File-based Storage**: Simple JSON persistence for rapid development
 
 ## Configuration

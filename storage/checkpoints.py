@@ -261,28 +261,34 @@ class URLQueue:
         
         return batch
     
-    def mark_completed(self, pages: List[Page]) -> None:
-        """Move pages from processing to completed"""
+    def move_to_processed_queue(self, pages: List[Page]) -> None:
+        """Move pages from processing queue to processed queue"""
         processing_pages = self._load_pages(self.processing_file)
-        completed_urls = {p.url for p in pages}
+        processed_urls = {p.url for p in pages}
         
-        # Remove from processing
-        remaining_processing = [p for p in processing_pages if p.url not in completed_urls]
+        # Remove from processing queue
+        remaining_processing = [p for p in processing_pages if p.url not in processed_urls]
         self._save_pages(self.processing_file, remaining_processing)
         
-        # Add to completed
-        self._append_to_file(self.completed_file, pages)
+        # Deduplicate pages by URL, keeping the page at the latest pipeline stage
+        unique_pages = {}
+        for page in pages:
+            if page.url not in unique_pages or self._is_at_later_pipeline_stage(page, unique_pages[page.url]):
+                unique_pages[page.url] = page
+        
+        # Add to processed queue
+        self._append_to_file(self.completed_file, list(unique_pages.values()))
     
-    def mark_failed(self, pages: List[Page]) -> None:
-        """Move pages from processing to failed"""
+    def move_to_failed_queue(self, pages: List[Page]) -> None:
+        """Move pages from processing queue to failed queue"""
         processing_pages = self._load_pages(self.processing_file)
         failed_urls = {p.url for p in pages}
         
-        # Remove from processing
+        # Remove from processing queue
         remaining_processing = [p for p in processing_pages if p.url not in failed_urls]
         self._save_pages(self.processing_file, remaining_processing)
         
-        # Add to failed
+        # Add to failed queue
         self._append_to_file(self.failed_file, pages)
     
     def get_counts(self) -> Dict[str, int]:
@@ -348,8 +354,27 @@ class URLQueue:
         except Exception as e:
             self.logger.error(f"Failed to save pages to {file_path}: {e}")
     
+    def _is_at_later_pipeline_stage(self, page1: Page, page2: Page) -> bool:
+        """Check if page1 is at a later pipeline stage than page2"""
+        # Pipeline stage hierarchy: ANALYZED > EXTRACTED > FETCHED > DISCOVERED
+        pipeline_stage_order = {
+            PageStatus.DISCOVERED: 0,
+            PageStatus.FETCHED: 1, 
+            PageStatus.EXTRACTED: 2,
+            PageStatus.ANALYZED: 3,
+            PageStatus.FAILED: -1  # Failed pages are not progressed through pipeline
+        }
+        
+        return pipeline_stage_order.get(page1.status, 0) > pipeline_stage_order.get(page2.status, 0)
+    
     def _append_to_file(self, file_path: Path, pages: List[Page]) -> None:
-        """Append pages to JSON file"""
+        """Append pages to JSON file, avoiding duplicates"""
         existing_pages = self._load_pages(file_path)
-        existing_pages.extend(pages)
-        self._save_pages(file_path, existing_pages)
+        existing_urls = {p.url for p in existing_pages}
+        
+        # Only add pages that don't already exist
+        new_pages = [p for p in pages if p.url not in existing_urls]
+        
+        if new_pages:
+            existing_pages.extend(new_pages)
+            self._save_pages(file_path, existing_pages)

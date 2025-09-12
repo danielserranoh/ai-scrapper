@@ -236,7 +236,9 @@ class LinkDiscoveryStage(PipelineStage):
     
     def process_item(self, page: Page, job: CrawlJob) -> Iterator[Page]:
         """Extract links from a fetched page and create new Page objects"""
-        if not page.html_content or page.status != PageStatus.FETCHED:
+        # Process pages that have been fetched (and possibly analyzed)
+        processable_statuses = {PageStatus.FETCHED, PageStatus.EXTRACTED, PageStatus.ANALYZED}
+        if not page.html_content or page.status not in processable_statuses:
             yield page
             return
         
