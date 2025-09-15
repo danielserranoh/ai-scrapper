@@ -32,12 +32,15 @@ A business intelligence tool for extracting comprehensive information from unive
 
 ## What It Does
 
-- **Analyzes website structure**: Pages, subdomains, assets, link relationships
-- **Extracts contact information**: Emails, social media handles by department  
-- **Business intelligence extraction**: Funding references, collaboration indicators, tech transfer activities
-- **Content analysis**: Automatic page classification (faculty, research, department, admissions, etc.)
+- **Advanced URL structure analysis**: Pattern recognition, academic year extraction, path analysis
+- **Intelligent asset categorization**: Documents, presentations, media, code repositories (8 categories)
+- **Enhanced contact extraction**: Emails, social media handles with department mapping  
+- **Comprehensive business intelligence**: Funding, collaboration, tech transfer, semantic analysis
+- **Granular page classification**: Main types + subtypes (faculty profiles, research centers, etc.)
+- **Semantic content analysis**: Academic disciplines, research methods, institutional roles
+- **Enhanced rate limiting**: Dynamic adaptation, blocking detection, graceful degradation
 - **Creates clean content**: HTML to Markdown for AI knowledge bases
-- **Generates comprehensive reports**: CSV/JSON exports with detailed analytics
+- **Production-ready exports**: CSV/JSON with comprehensive business intelligence data
 
 ## Architecture
 
@@ -46,25 +49,88 @@ Pipeline-based processing with recovery capabilities:
 
 ## Key Features
 
-- **Business Intelligence Analysis**: Extract funding, collaboration, and tech transfer indicators
-- **Contact Extraction**: Automated email and social media discovery with department mapping
-- **Content Classification**: Smart page categorization (faculty, research, department, etc.)
+### 🎯 Enhanced Business Intelligence (v2.0)
+- **Advanced URL Structure Analysis**: Pattern recognition for faculty profiles, research projects, department pages
+- **Intelligent Asset Categorization**: 8 asset types including documents, presentations, media, code
+- **Semantic Content Analysis**: Academic disciplines, research methods, institutional roles detection
+- **Enhanced Page Classification**: Main types + granular subtypes for precise categorization
+
+### 🛡️ Production-Ready Crawling  
+- **Enhanced Rate Limiting**: Dynamic delay adjustment based on response times and server conditions
+- **Blocking Detection & Mitigation**: 403/429 detection, rate limit headers analysis, graceful degradation
+- **4-Level Severity System**: normal → limited → throttled → blocked with appropriate responses
+- **Adaptive Performance**: Timeout adjustment and recovery strategies
+
+### 📊 Comprehensive Analytics
+- **Business Intelligence Extraction**: Funding, collaboration, tech transfer indicators
+- **Contact Discovery**: Automated email and social media extraction with context
+- **Academic Intelligence**: Research focus, methodologies, institutional structure analysis
+- **Asset Intelligence**: Downloadable resource categorization and business value assessment
+
+### 🔧 Technical Excellence
 - **Modern CLI**: Click-based interface with comprehensive command structure
-- **Adaptive crawling**: Intelligent rate limiting and blocking detection  
-- **Recovery system**: Resume from any failure point with checkpointing
-- **Pipeline-aware Architecture**: Maintainable code with clear stage progression
-- **Content cleaning**: BeautifulSoup + html2text extraction
-- **Export flexibility**: Populated CSV/JSON exports with no duplicates
-- **File-based Storage**: Simple JSON persistence for rapid development
+- **Recovery System**: Resume from any failure point with enhanced checkpointing
+- **Pipeline-aware Architecture**: Maintainable code with clear stage progression  
+- **Content Cleaning**: BeautifulSoup + html2text extraction with enhanced analysis
+- **Export Flexibility**: Rich CSV/JSON exports with enhanced business intelligence fields
+- **File-based Storage**: Simple JSON persistence optimized for development and deployment
+
+## Enhanced Data Output
+
+### CSV Export (Business Intelligence Ready)
+New enhanced fields include:
+- `page_subtype`: Granular classification (individual_profile, research_center, etc.)
+- `url_pattern`: Recognized URL structure (faculty_profile, department_page, etc.)
+- `path_depth`: URL hierarchy analysis
+- `academic_year`: Extracted academic year context
+- `linked_assets_count`: Number of downloadable resources
+- `asset_breakdown_summary`: Asset categories and counts
+- `semantic_indicators_summary`: Academic context indicators
+
+### JSON Export (Complete Analysis)
+Full analysis results include:
+```json
+{
+  "analysis_results": {
+    "page_type": "faculty",
+    "page_subtype": "individual_profile", 
+    "url_structure": {
+      "path_depth": 3,
+      "url_pattern": "faculty_profile",
+      "academic_year": "2024"
+    },
+    "linked_assets_count": 5,
+    "asset_breakdown": {
+      "documents": 3,
+      "presentations": 1,
+      "media": 1
+    },
+    "semantic_indicators": {
+      "academic_focus": 2,
+      "research_methods": 1,
+      "institutional_roles": 1
+    }
+  }
+}
+```
 
 ## Configuration
 
 Edit `config.py` for crawling parameters:
-- Rate limiting settings
-- Content filters  
-- Export options
-- Recovery policies
+- Enhanced rate limiting settings (response time thresholds, blocking detection)
+- Content filters and analysis thresholds
+- Asset categorization preferences
+- Export options and semantic analysis configuration
+- Recovery policies and checkpoint intervals
+
+## Testing
+
+Run the comprehensive testing suite:
+```bash
+# See TESTING_PLAN.md for complete testing instructions
+python main.py crawl cs.stanford.edu --max-pages 10 --verbose
+```
 
 ## Development
 
-See `CLAUDE.md` for development guidelines and `PROJECT_BRIEF.md` for full technical specifications.
+See `CLAUDE.md` for development guidelines, `PROJECT_BRIEF.md` for technical specifications, and `TESTING_PLAN.md` for validation procedures.

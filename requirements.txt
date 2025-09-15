@@ -1,6 +1,6 @@
 # Core web crawling
-requests==2.31.0
-beautifulsoup4==4.12.2
+requests
+beautifulsoup4
 lxml  # Let pip find the best compatible version
 html2text  # For markdown conversion
 
@@ -17,10 +17,11 @@ click # For better CLI interface
 python-dotenv  # For environment variables
 
 # Development tools
-ruff==0.1.6  # For linting
-mypy==1.7.0  # For type checking
-pytest==7.4.3  # For testing
-pytest-mock==3.12.0  # For mocking in tests
+ruff  # For linting
+mypy  # For type checking
+pytest  # For testing
+pytest-mock  # For mocking in tests
+
 
 # Phase 2+ dependencies (optional for now)
 # crawl4ai==0.7.4  # Advanced content extraction

@@ -1,7 +1,7 @@
-# Analysis Stage Testing Plan
+# University Web Crawler - Comprehensive Testing Plan
 
 ## Overview
-This testing plan will help you verify that the new content analysis stage correctly extracts business intelligence from university websites, including contacts, page classification, and content indicators.
+This testing plan covers the complete university web crawler system including the enhanced rate limiting, advanced URL structure analysis, asset categorization, and comprehensive content analysis features. The plan is designed to verify both existing functionality and new enhancements for business intelligence extraction.
 
 ## Test Setup
 
@@ -30,6 +30,355 @@ python test_analyzer.py
 - Should find 3 social media handles
 - Should detect funding references and technology transfer indicators
 - Status should be `PageStatus.ANALYZED`
+
+---
+
+# ENHANCED FEATURES TESTING (v2.0)
+
+## Test Suite A: Enhanced Rate Limiting System
+
+### A1: Dynamic Delay Adjustment Test
+**Duration**: 10-15 minutes  
+**Objective**: Verify response time-based rate limiting
+
+```bash
+# Test adaptive rate limiting
+python main.py crawl cs.stanford.edu --max-pages 25 --verbose
+```
+
+**Monitor Console Output For**:
+- Response times logged (e.g., "Successfully fetched ... (0.75s, normal)")
+- Severity levels: normal → limited → throttled → blocked
+- Adaptive delay adjustments
+
+**Success Criteria**:
+- ✅ Response times shown for each request
+- ✅ Severity escalation when appropriate
+- ✅ No crawler crashes from rate limiting
+
+### A2: Blocking Detection Test
+**Duration**: 5-10 minutes  
+**Objective**: Test graceful handling of HTTP errors
+
+```bash
+# Test with a site that may have some blocking
+python main.py crawl news.stanford.edu --max-pages 20 --verbose
+```
+
+**Look For**:
+- HTTP 403/429 errors handled gracefully
+- Rate limiter adjusts delays after errors
+- Crawler continues with other pages
+
+**Success Criteria**:
+- ✅ HTTP errors don't crash the system
+- ✅ Blocking severity reported accurately
+- ✅ Failed pages tracked but don't stop crawl
+
+### A3: Rate Limiter Statistics Test
+**Duration**: 2 minutes  
+**Objective**: Verify enhanced statistics reporting
+
+```bash
+# After any crawl, check the final statistics
+python main.py status [job_id]
+```
+
+**Expected Statistics**:
+- Per-domain rate limiting status
+- Blocking severity breakdown (normal/limited/throttled/blocked)
+- Average response times
+
+**Success Criteria**:
+- ✅ Detailed rate limiter statistics displayed
+- ✅ Severity summary shows distribution
+- ✅ Performance metrics included
+
+## Test Suite B: Advanced URL Structure Analysis
+
+### B1: URL Pattern Recognition Test
+**Duration**: 15-20 minutes  
+**Objective**: Test enhanced URL pattern classification
+
+```bash
+# Crawl a university with diverse URL structures
+python main.py crawl cs.stanford.edu --max-pages 30 --verbose
+```
+
+**Manual Verification**:
+1. Export results: `python main.py export [job_id] --format json`
+2. Check `analysis_results.url_structure.url_pattern` field
+3. Verify pattern classifications:
+
+| URL Type | Expected Pattern |
+|----------|------------------|
+| `/people/john-doe` | `faculty_profile` |
+| `/research/ai-lab` | `research_project` |
+| `/departments/cs` | `department_page` |
+| `/courses/cs101` | `course_page` |
+| `/news/2024/article` | `news_article` |
+
+**Success Criteria**:
+- ✅ URL patterns correctly identified (≥85% accuracy)
+- ✅ Path depth calculated accurately
+- ✅ Academic years extracted when present
+
+### B2: URL Structure Data Test
+**Duration**: 5 minutes  
+**Objective**: Verify URL structure data completeness
+
+**Check JSON Export For**:
+```json
+"url_structure": {
+  "path_depth": 3,
+  "url_pattern": "faculty_profile",
+  "academic_year": "2024",
+  "file_extension": null
+}
+```
+
+**Success Criteria**:
+- ✅ Path depth matches actual URL structure
+- ✅ Academic years extracted from date-based URLs
+- ✅ File extensions detected correctly
+
+## Test Suite C: Asset Categorization System
+
+### C1: Asset Detection Test
+**Duration**: 10-15 minutes  
+**Objective**: Test linked asset detection and categorization
+
+```bash
+# Crawl pages likely to have downloadable content
+python main.py crawl cs.stanford.edu --max-pages 20 --verbose
+```
+
+**Asset Types to Verify**:
+- **Documents**: PDFs, syllabi, handbooks (.pdf, .doc, .txt)
+- **Presentations**: Lecture slides (.ppt, .pptx)
+- **Media**: Images, photos (.jpg, .png, .gif)
+- **Archives**: Downloads (.zip, .tar)
+- **Code**: Source files (.py, .js, .html)
+
+**Success Criteria**:
+- ✅ Asset breakdown populated with counts
+- ✅ linked_assets_count > 0 for content-rich pages
+- ✅ Asset categorization accuracy ≥80%
+
+### C2: Asset Intelligence Test
+**Duration**: 5 minutes  
+**Objective**: Verify business value of asset data
+
+**Check Export For**:
+```json
+"asset_breakdown": {
+  "documents": 5,
+  "presentations": 2,
+  "media": 8,
+  "code": 1
+}
+```
+
+**Business Intelligence Value**:
+- Document counts indicate content richness
+- Presentation files suggest educational resources
+- Code repositories indicate technical depth
+
+**Success Criteria**:
+- ✅ Asset breakdown provides actionable insights
+- ✅ Categories align with university content types
+- ✅ Counts help assess institutional resources
+
+## Test Suite D: Enhanced Page Classification
+
+### D1: Page Type and Subtype Test
+**Duration**: 15-20 minutes  
+**Objective**: Test improved page classification granularity
+
+```bash
+# Test with diverse university content
+python main.py crawl cs.stanford.edu --max-pages 25 --verbose
+```
+
+**Verify Classification Accuracy**:
+
+| Page Type | Subtypes | Example URLs |
+|-----------|----------|--------------|
+| `faculty` | `individual_profile`, `faculty_listing` | `/people/jane-doe`, `/faculty` |
+| `department` | `department_home`, `program_page` | `/cs`, `/programs/phd` |
+| `research` | `research_center`, `research_project` | `/labs/ai`, `/research/project1` |
+| `admissions` | `undergraduate`, `graduate` | `/admissions/undergrad` |
+| `academics` | `course_catalog`, `degree_requirements` | `/courses`, `/requirements` |
+| `student_life` | `housing`, `activities` | `/housing`, `/clubs` |
+
+**Success Criteria**:
+- ✅ Main types classified correctly (≥90% accuracy)
+- ✅ Subtypes provide meaningful granularity
+- ✅ New categories (academics, student_life) work
+
+### D2: Semantic Content Analysis Test
+**Duration**: 10 minutes  
+**Objective**: Test semantic pattern detection
+
+**Check JSON Export For**:
+```json
+"semantic_indicators": {
+  "academic_focus": 3,
+  "research_methods": 1,
+  "institutional_roles": 2,
+  "academic_activities": 1
+}
+```
+
+**Semantic Categories**:
+- **Academic Focus**: Disciplines (AI, engineering, medicine)
+- **Research Methods**: Methodologies (experimental, survey)
+- **Institutional Roles**: Positions (dean, professor, director)
+- **Academic Activities**: Events (conference, workshop, seminar)
+
+**Success Criteria**:
+- ✅ Semantic indicators populated on relevant pages
+- ✅ Academic disciplines correctly identified
+- ✅ Content context detected accurately
+
+## Test Suite E: Enhanced Export and Data Quality
+
+### E1: Enhanced CSV Export Test
+**Duration**: 5 minutes  
+**Objective**: Verify new analysis fields in CSV
+
+```bash
+python main.py export [job_id] --format csv
+```
+
+**New CSV Columns to Verify**:
+- `page_subtype`
+- `url_pattern`
+- `path_depth`
+- `academic_year`
+- `linked_assets_count`
+- `asset_breakdown_summary`
+- `semantic_indicators_summary`
+
+**Success Criteria**:
+- ✅ All new columns present and populated
+- ✅ Data properly formatted and readable
+- ✅ Business intelligence value evident
+
+### E2: Complete JSON Export Test
+**Duration**: 5 minutes  
+**Objective**: Test full enhanced data structure
+
+```bash
+python main.py export [job_id] --format json
+```
+
+**Verify Complete Structure**:
+```json
+{
+  "analysis_results": {
+    "page_type": "faculty",
+    "page_subtype": "individual_profile",
+    "url_structure": { ... },
+    "linked_assets_count": 3,
+    "asset_breakdown": { ... },
+    "semantic_indicators": { ... }
+  }
+}
+```
+
+**Success Criteria**:
+- ✅ JSON structure validates correctly
+- ✅ All enhanced fields populated
+- ✅ Data relationships logical and complete
+
+## Test Suite F: Integration and Performance
+
+### F1: Full Pipeline Integration Test
+**Duration**: 20-30 minutes  
+**Objective**: Test complete enhanced pipeline
+
+```bash
+# Large scale test with all features
+python main.py crawl www.stanford.edu --max-pages 50 --verbose
+```
+
+**Monitor Throughout**:
+- Rate limiting adaptation
+- URL pattern recognition
+- Asset detection
+- Page classification
+- Performance metrics
+
+**Success Criteria**:
+- ✅ All features work together seamlessly
+- ✅ No performance degradation >20%
+- ✅ Enhanced data quality maintained at scale
+
+### F2: Recovery and Checkpoint Test
+**Duration**: 15 minutes  
+**Objective**: Test enhanced features with recovery
+
+```bash
+# Start crawl
+python main.py crawl cs.stanford.edu --max-pages 30
+
+# Interrupt after 15 pages (Ctrl+C)
+# Resume
+python main.py resume [job_id]
+```
+
+**Success Criteria**:
+- ✅ Enhanced analysis continues after resume
+- ✅ All enhanced data preserved
+- ✅ No feature regression in recovered session
+
+## Enhanced Success Criteria Checklist
+
+### Core Functionality (Must Pass)
+- [ ] Enhanced rate limiting prevents blocking
+- [ ] URL structure analysis accuracy ≥85%
+- [ ] Asset categorization accuracy ≥80%
+- [ ] Page type classification accuracy ≥90%
+- [ ] Export data includes all enhanced fields
+- [ ] Performance impact ≤20% vs baseline
+
+### Business Intelligence Quality (Should Pass)
+- [ ] Faculty contact extraction rate >70%
+- [ ] Research funding detection >20% on research pages
+- [ ] Asset intelligence provides actionable insights
+- [ ] Semantic analysis identifies academic context
+- [ ] URL patterns help understand site structure
+
+### Advanced Features (Nice to Have)
+- [ ] Academic year extraction from URLs
+- [ ] Subtype classification adds value
+- [ ] Rate limiter statistics help optimization
+- [ ] Asset breakdown guides content assessment
+- [ ] Semantic indicators support targeting
+
+## Quick Validation Commands
+
+After completing tests, run these for quick validation:
+
+```bash
+# Get latest job
+JOB_ID=$(python main.py list | grep "job_" | head -1 | awk '{print $1}')
+
+# Export and analyze
+python main.py export $JOB_ID --format csv
+CSV_FILE=$(ls data/output/${JOB_ID}_pages_*.csv | head -1)
+
+# Enhanced analysis
+echo "=== ENHANCED CRAWLER VALIDATION ==="
+echo "Job ID: $JOB_ID"
+echo "Total pages: $(tail -n +2 $CSV_FILE | wc -l)"
+echo "Faculty pages: $(grep -c 'faculty' $CSV_FILE)"
+echo "Research pages: $(grep -c 'research' $CSV_FILE)" 
+echo "Pages with assets: $(awk -F',' 'NR>1 && $NF>0 {count++} END {print count+0}' $CSV_FILE)"
+echo "Unique URL patterns: $(awk -F',' 'NR>1 {print $X}' $CSV_FILE | sort | uniq | wc -l)"
+echo "=== VALIDATION COMPLETE ==="
+```
 
 ## Full Pipeline Tests
 
@@ -228,7 +577,7 @@ echo "Research pages: $(grep -c 'research' $CSV_FILE)"
 echo "Pages with funding refs: $(awk -F',' '$20 > 0 { count++ } END { print count+0 }' $CSV_FILE)"
 ```
 
-## Success Criteria
+## Legacy Success Criteria (v1.0)
 
 ✅ **Analysis Integration**: Pages show `ANALYZED` status  
 ✅ **Contact Extraction**: Email addresses found and counted  
@@ -237,4 +586,73 @@ echo "Pages with funding refs: $(awk -F',' '$20 > 0 { count++ } END { print coun
 ✅ **Export Enhancement**: New analysis columns in CSV  
 ✅ **Performance**: Analysis doesn't significantly slow crawling
 
-The analysis stage should provide actionable business intelligence that helps identify partnership opportunities, research collaborations, and key contacts at target universities.
+## Enhanced Success Criteria (v2.0)
+
+✅ **Enhanced Rate Limiting**: Dynamic adaptation and blocking prevention  
+✅ **URL Structure Analysis**: Pattern recognition and academic context  
+✅ **Asset Categorization**: Intelligent resource classification  
+✅ **Advanced Page Types**: Granular classification with subtypes  
+✅ **Semantic Analysis**: Academic content understanding  
+✅ **Enhanced Exports**: Comprehensive business intelligence data
+
+---
+
+## Testing Report Template
+
+Use this template to document your testing results:
+
+```markdown
+# Testing Report - [Date]
+
+## Test Environment
+- Python Version: 
+- Dependencies: Latest
+- Test Duration: [X] hours
+- Tester: [Name]
+
+## Test Results Summary
+
+### Enhanced Rate Limiting (Test Suite A)
+- [ ] A1: Dynamic Delay Adjustment - [PASS/FAIL]
+- [ ] A2: Blocking Detection - [PASS/FAIL] 
+- [ ] A3: Rate Limiter Statistics - [PASS/FAIL]
+
+### URL Structure Analysis (Test Suite B)
+- [ ] B1: URL Pattern Recognition - [PASS/FAIL]
+- [ ] B2: URL Structure Data - [PASS/FAIL]
+
+### Asset Categorization (Test Suite C)
+- [ ] C1: Asset Detection - [PASS/FAIL]
+- [ ] C2: Asset Intelligence - [PASS/FAIL]
+
+### Enhanced Page Classification (Test Suite D)
+- [ ] D1: Page Type and Subtype - [PASS/FAIL]
+- [ ] D2: Semantic Content Analysis - [PASS/FAIL]
+
+### Export and Data Quality (Test Suite E)
+- [ ] E1: Enhanced CSV Export - [PASS/FAIL]
+- [ ] E2: Complete JSON Export - [PASS/FAIL]
+
+### Integration and Performance (Test Suite F)
+- [ ] F1: Full Pipeline Integration - [PASS/FAIL]
+- [ ] F2: Recovery and Checkpoint - [PASS/FAIL]
+
+## Key Findings
+- Performance Impact: [X]% vs baseline
+- URL Pattern Accuracy: [X]%
+- Asset Detection Rate: [X]%
+- Page Classification Accuracy: [X]%
+
+## Critical Issues Found
+1. [Issue 1 description]
+2. [Issue 2 description]
+
+## Recommendations
+1. [Recommendation 1]
+2. [Recommendation 2]
+
+## Overall Assessment
+[PASS/FAIL with rationale]
+```
+
+The enhanced crawler system should provide comprehensive business intelligence that significantly improves sales team targeting and partnership identification for university outreach.
