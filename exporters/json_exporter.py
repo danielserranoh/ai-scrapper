@@ -3,7 +3,7 @@ JSON exporter implementation
 """
 
 import json
-from typing import List, Dict, Any
+from typing import List
 from .base import BaseExporter
 from models.page import Page
 from storage.checkpoints import JSONEncoder

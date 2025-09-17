@@ -116,15 +116,20 @@ class ContentExtractionStage(PipelineStage):
         for comment in content_soup.find_all(string=lambda text: isinstance(text, Comment)):
             comment.extract()
         
-        # Try to find main content area
+        # Try to find main content area with improved fallback strategy
         main_content = (
-            content_soup.find('main') or 
+            content_soup.find('main') or
             content_soup.find('article') or
             content_soup.find('div', class_=re.compile(r'content|main|body', re.I)) or
             content_soup.find('div', id=re.compile(r'content|main|body', re.I)) or
             content_soup.find('body') or
             content_soup
         )
+
+        # If main content area has no text, fall back to body directly
+        if main_content and len(main_content.get_text(strip=True)) == 0:
+            self.logger.debug("Main content area is empty, falling back to body")
+            main_content = content_soup.find('body') or content_soup
         
         if main_content:
             # Extract text and clean whitespace
@@ -160,14 +165,18 @@ class ContentExtractionStage(PipelineStage):
                 for element in markdown_soup.find_all(tag_name):
                     element.decompose()
             
-            # Try to find main content for markdown conversion
+            # Try to find main content for markdown conversion with improved fallback
             main_content = (
-                markdown_soup.find('main') or 
+                markdown_soup.find('main') or
                 markdown_soup.find('article') or
                 markdown_soup.find('div', class_=re.compile(r'content|main|body', re.I)) or
                 markdown_soup.find('body') or
                 markdown_soup
             )
+
+            # If main content area has no text, fall back to body directly
+            if main_content and len(main_content.get_text(strip=True)) == 0:
+                main_content = markdown_soup.find('body') or markdown_soup
             
             if main_content:
                 # Convert to markdown

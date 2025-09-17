@@ -11,7 +11,7 @@ from pathlib import Path
 from config import get_config, LOG_CONFIG
 from pipeline.manager import PipelineManager
 from storage.data_store import DataStore
-from utils.common import format_duration, format_bytes
+from utils.common import format_duration
 
 
 def setup_logging(verbose: bool = False):
@@ -220,7 +220,7 @@ def export(job_id, csv, json):
 
         # Export to CSV
         if csv:
-            click.echo(f"📄 Exporting to CSV format...")
+            click.echo("📄 Exporting to CSV format...")
             from exporters import CSVExporter
             exporter = CSVExporter()
 
@@ -233,7 +233,7 @@ def export(job_id, csv, json):
 
         # Export to JSON
         if json:
-            click.echo(f"📄 Exporting to JSON format...")
+            click.echo("📄 Exporting to JSON format...")
             from exporters import JSONExporter
             exporter = JSONExporter()
 
@@ -271,8 +271,8 @@ def get_report(job_id):
             click.echo(f"❌ Failed to generate BI reports for job {job_id}")
             sys.exit(1)
 
-        click.echo(f"✅ Business intelligence reports generated successfully")
-        click.echo(f"📁 Reports saved to: bi_reports/")
+        click.echo("✅ Business intelligence reports generated successfully")
+        click.echo("📁 Reports saved to: bi_reports/")
 
     except Exception as e:
         click.echo(f"❌ BI report generation failed: {e}")
@@ -380,7 +380,7 @@ def _load_pages_data(job_id: str):
             page.analysis_results = page_data.get('analysis_results')
 
             pages.append(page)
-        except Exception as e:
+        except Exception:
             # Skip invalid pages
             continue
 
@@ -392,8 +392,6 @@ def _generate_bi_reports(job_id: str, pages) -> bool:
     try:
         import json
         from pathlib import Path
-        from collections import defaultdict, Counter
-        from urllib.parse import urlparse
 
         # Load completed pages from queues (or output)
         completed_file = f"data/output/{job_id}_completed.json"
@@ -416,7 +414,7 @@ def _generate_bi_reports(job_id: str, pages) -> bool:
         # [The business intelligence generation code from before]
         # This would contain the same logic we used earlier
 
-        click.echo(f"✅ Generated BI reports in bi_reports/ directory")
+        click.echo("✅ Generated BI reports in bi_reports/ directory")
         return True
 
     except Exception as e:
@@ -465,7 +463,7 @@ def _generate_exports(job_id: str, data_store: DataStore) -> bool:
                 page.analysis_results = page_data.get('analysis_results')
 
                 pages.append(page)
-            except Exception as e:
+            except Exception:
                 # Skip invalid pages
                 continue
 

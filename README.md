@@ -36,12 +36,12 @@ A business intelligence tool for extracting comprehensive information from unive
 
 - **Advanced URL structure analysis**: Pattern recognition, academic year extraction, path analysis
 - **Intelligent asset categorization**: Documents, presentations, media, code repositories (8 categories)
-- **Enhanced contact extraction**: Emails, social media handles with department mapping  
+- **Robust contact extraction**: Emails, social media handles with department mapping, handles non-standard page layouts
 - **Comprehensive business intelligence**: Funding, collaboration, tech transfer, semantic analysis
 - **Granular page classification**: Main types + subtypes (faculty profiles, research centers, etc.)
 - **Semantic content analysis**: Academic disciplines, research methods, institutional roles
 - **Enhanced rate limiting**: Dynamic adaptation, blocking detection, graceful degradation
-- **Creates clean content**: HTML to Markdown for AI knowledge bases
+- **Smart content extraction**: HTML to Markdown conversion with fallback strategies for diverse page structures
 - **Production-ready exports**: CSV/JSON with comprehensive business intelligence data
 
 ## Architecture
@@ -65,7 +65,7 @@ Pipeline-based processing with recovery capabilities:
 
 ### 📊 Comprehensive Analytics
 - **Business Intelligence Extraction**: Funding, collaboration, tech transfer indicators
-- **Contact Discovery**: Automated email and social media extraction with context
+- **Robust Contact Discovery**: Automated email and social media extraction with context, handles diverse page layouts
 - **Academic Intelligence**: Research focus, methodologies, institutional structure analysis
 - **Asset Intelligence**: Downloadable resource categorization and business value assessment
 
@@ -73,7 +73,7 @@ Pipeline-based processing with recovery capabilities:
 - **Modern CLI**: Click-based interface with clear command separation
 - **Recovery System**: Resume from any failure point with enhanced checkpointing
 - **Pipeline-aware Architecture**: Maintainable code with clear stage progression
-- **Content Cleaning**: BeautifulSoup + html2text extraction with enhanced analysis
+- **Smart Content Extraction**: BeautifulSoup + html2text with fallback strategies for diverse page structures
 - **Extensible Export System**: Pluggable format adapters (CSV, JSON, future: xlsx, md, txt)
 - **Clean Data Organization**: Separate crawling outputs from business intelligence reports
 - **File-based Storage**: Simple JSON persistence optimized for development and deployment
