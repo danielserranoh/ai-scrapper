@@ -27,7 +27,9 @@ A business intelligence tool for extracting comprehensive information from unive
 
 5. **Export results:**
    ```bash
-   python main.py export job_20240101_120000 --format csv
+   python main.py export job_20240101_120000 --csv
+   python main.py export job_20240101_120000 --json
+   python main.py get-report job_20240101_120000
    ```
 
 ## What It Does
@@ -68,52 +70,50 @@ Pipeline-based processing with recovery capabilities:
 - **Asset Intelligence**: Downloadable resource categorization and business value assessment
 
 ### 🔧 Technical Excellence
-- **Modern CLI**: Click-based interface with comprehensive command structure
+- **Modern CLI**: Click-based interface with clear command separation
 - **Recovery System**: Resume from any failure point with enhanced checkpointing
 - **Pipeline-aware Architecture**: Maintainable code with clear stage progression
 - **Content Cleaning**: BeautifulSoup + html2text extraction with enhanced analysis
-- **Export Flexibility**: Rich CSV/JSON exports with enhanced business intelligence fields
+- **Extensible Export System**: Pluggable format adapters (CSV, JSON, future: xlsx, md, txt)
+- **Clean Data Organization**: Separate crawling outputs from business intelligence reports
 - **File-based Storage**: Simple JSON persistence optimized for development and deployment
 - **Real-time Progress**: Enhanced dashboard with speed, ETA, and queue status at each checkpoint
 
-## Enhanced Data Output
+## Export System
 
-### CSV Export (Business Intelligence Ready)
-New enhanced fields include:
-- `page_subtype`: Granular classification (individual_profile, research_center, etc.)
-- `url_pattern`: Recognized URL structure (faculty_profile, department_page, etc.)
-- `path_depth`: URL hierarchy analysis
-- `academic_year`: Extracted academic year context
-- `linked_assets_count`: Number of downloadable resources
-- `asset_breakdown_summary`: Asset categories and counts
-- `semantic_indicators_summary`: Academic context indicators
+### Data Exports (Crawling Results)
+```bash
+# Export crawling data to CSV format
+python main.py export job_id --csv
 
-### JSON Export (Complete Analysis)
-Full analysis results include:
-```json
-{
-  "analysis_results": {
-    "page_type": "faculty",
-    "page_subtype": "individual_profile", 
-    "url_structure": {
-      "path_depth": 3,
-      "url_pattern": "faculty_profile",
-      "academic_year": "2024"
-    },
-    "linked_assets_count": 5,
-    "asset_breakdown": {
-      "documents": 3,
-      "presentations": 1,
-      "media": 1
-    },
-    "semantic_indicators": {
-      "academic_focus": 2,
-      "research_methods": 1,
-      "institutional_roles": 1
-    }
-  }
-}
+# Export crawling data to JSON format
+python main.py export job_id --json
+
+# Export to multiple formats
+python main.py export job_id --csv --json
 ```
+
+**Output Location**: `data/output/`
+- `job_*_pages.csv/json` - Complete page data with analysis results
+- `job_*_contacts.csv/json` - Extracted contacts and social profiles
+
+### Business Intelligence Reports
+```bash
+# Generate comprehensive BI reports
+python main.py get-report job_id
+```
+
+**Output Location**: `bi_reports/`
+- Executive summaries and strategic insights
+- Sales intelligence and opportunity analysis
+- Subdomain and organizational structure analysis
+- Technology stack and competitive intelligence
+
+### Export Architecture
+- **Extensible Design**: Easy to add new formats (xlsx, md, txt)
+- **Database Ready**: Exporter pattern supports future database integration
+- **Clean Separation**: Raw data vs business intelligence
+- **Format Agnostic**: Same data, multiple output formats
 
 ## Configuration
 

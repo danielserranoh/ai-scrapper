@@ -29,9 +29,11 @@ This is a university website crawler designed for business intelligence. The sys
 
 ### Key Commands
 - **Install dependencies**: `pip install -r requirements.txt`
-- **Run crawler**: `python main.py --domain university.edu`
-- **Resume job**: `python main.py --resume job_id`
-- **Export reports**: `python cli.py export --job job_id --format csv`
+- **Run crawler**: `python main.py domain university.edu`
+- **Resume job**: `python main.py resume job_id`
+- **Export to CSV**: `python main.py export job_id --csv`
+- **Export to JSON**: `python main.py export job_id --json`
+- **Generate BI reports**: `python main.py get-report job_id`
 - **Lint code**: `ruff check .`
 - **Type check**: `mypy .`
 

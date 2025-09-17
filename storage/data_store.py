@@ -15,6 +15,12 @@ class DataStore:
     """Handles data storage and export operations"""
     
     def __init__(self, base_dir: str = "data/output"):
+        """Initialize DataStore
+
+        Args:
+            base_dir: Directory for crawling outputs (pages.csv, contacts.csv, etc.)
+                     For business intelligence reports, use separate BI tools.
+        """
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(parents=True, exist_ok=True)
         self.logger = logging.getLogger(__name__)
