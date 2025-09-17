@@ -1,4 +1,4 @@
-# Create Testing Plan
+# Create a Manual QA Testing Plan
 
 Before jumping into the next step, I would like to 
 personally test this new feature and check the results.

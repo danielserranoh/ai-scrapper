@@ -13,6 +13,7 @@ from pipeline.analyzer import ContentAnalysisStage
 from storage.checkpoints import CheckpointManager, URLQueue
 from storage.data_store import DataStore
 from config import CrawlConfig
+from utils.progress import ProgressTracker
 from utils.time import get_current_time
 
 
@@ -44,6 +45,7 @@ class PipelineManager:
         # Runtime tracking
         self.start_time: Optional[datetime] = None
         self.last_checkpoint: Optional[datetime] = None
+        self.progress_tracker: Optional[ProgressTracker] = None
         
     def start_new_job(self, domain: str, job_id: str = None) -> CrawlJob:
         """Start a new crawling job"""
@@ -101,6 +103,13 @@ class PipelineManager:
         from utils.time import get_current_time
         self.start_time = get_current_time()
         self.current_job.start()
+
+        # Initialize progress tracker
+        self.progress_tracker = ProgressTracker(
+            self.current_job.job_id,
+            self.current_job.domain,
+            self.start_time
+        )
         
         max_duration = max_duration_hours or self.config.timeout_hours
         end_time = self.start_time + timedelta(hours=max_duration)
@@ -233,11 +242,16 @@ class PipelineManager:
             self.current_job.processed_pages = processed_count
             self.current_job.failed_pages = len(failed_pages)
             
-            # Checkpoint periodically
+            # Checkpoint periodically with enhanced progress reporting
             if processed_count % self.config.checkpoint_interval == 0:
                 self._save_checkpoint()
-                self.logger.info(f"Processed {processed_count} pages, "
-                               f"queue status: {self.url_queue.get_counts()}")
+
+                # Display enhanced progress dashboard
+                if self.progress_tracker:
+                    progress_message = self.progress_tracker.format_progress_message(self.url_queue)
+                    # Log each line separately for better formatting
+                    for line in progress_message.split('\n'):
+                        self.logger.info(line)
             
             # Check limits
             if self.current_job.total_pages >= self.config.max_pages:

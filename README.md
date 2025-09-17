@@ -70,10 +70,11 @@ Pipeline-based processing with recovery capabilities:
 ### 🔧 Technical Excellence
 - **Modern CLI**: Click-based interface with comprehensive command structure
 - **Recovery System**: Resume from any failure point with enhanced checkpointing
-- **Pipeline-aware Architecture**: Maintainable code with clear stage progression  
+- **Pipeline-aware Architecture**: Maintainable code with clear stage progression
 - **Content Cleaning**: BeautifulSoup + html2text extraction with enhanced analysis
 - **Export Flexibility**: Rich CSV/JSON exports with enhanced business intelligence fields
 - **File-based Storage**: Simple JSON persistence optimized for development and deployment
+- **Real-time Progress**: Enhanced dashboard with speed, ETA, and queue status at each checkpoint
 
 ## Enhanced Data Output
 
@@ -122,6 +123,7 @@ Edit `config.py` for crawling parameters:
 - Asset categorization preferences
 - Export options and semantic analysis configuration
 - Recovery policies and checkpoint intervals
+- Progress reporting frequency (`checkpoint_interval` - default: every 100 URLs)
 
 ## Testing
 

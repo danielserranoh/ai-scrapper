@@ -3,6 +3,8 @@
 ## Project Overview
 A business intelligence tool for sales teams to extract comprehensive information from university websites. The system analyzes website structure, extracts contact information, and provides clean content for AI knowledge bases.
 
+This document describes what the final solucion should look like, not what it could be during  development. This document should serve as the northe star, and in order to evaluate gaps of the current situation towards this final state.
+
 ## Core Objectives
 1. **Website Metrics**: Analyze site size (pages, subdomains, assets) and structure
 2. **Contact Extraction**: Find emails and social media handles across all departments
