@@ -16,20 +16,24 @@ A business intelligence tool for extracting comprehensive information from unive
 
 3. **Resume failed job:**
    ```bash
-   python main.py resume job_20240101_120000
+   python main.py resume job_stanford_edu_24091412
    ```
 
 4. **Check status:**
    ```bash
    python main.py status
-   python main.py status job_20240101_120000
+   python main.py status job_stanford_edu_24091412
    ```
 
 5. **Export results:**
    ```bash
-   python main.py export job_20240101_120000 --csv
-   python main.py export job_20240101_120000 --json
-   python main.py get-report job_20240101_120000
+   python main.py export job_stanford_edu_24091412 --csv
+   python main.py export job_stanford_edu_24091412 --json
+   ```
+
+6. **Analyze results:**
+   ```bash
+   python main.py get-report job_stanford_edu_24091412
    ```
 
 ## What It Does
@@ -42,7 +46,8 @@ A business intelligence tool for extracting comprehensive information from unive
 - **Semantic content analysis**: Academic disciplines, research methods, institutional roles
 - **Enhanced rate limiting**: Dynamic adaptation, blocking detection, graceful degradation
 - **Smart content extraction**: HTML to Markdown conversion with fallback strategies for diverse page structures
-- **Production-ready exports**: CSV/JSON with comprehensive business intelligence data
+- **Production-ready exports**: CSV/JSON with parsed and cleaned data
+- **Business Intelligence reports**: Comprehensive business intelligence analysis reports
 
 ## Architecture
 
@@ -94,8 +99,8 @@ python main.py export job_id --csv --json
 ```
 
 **Output Location**: `data/output/`
-- `job_*_pages.csv/json` - Complete page data with analysis results
-- `job_*_contacts.csv/json` - Extracted contacts and social profiles
+- `{domain}-pages-{timestamp}.csv/json` - Complete page data with analysis results
+- `{domain}-contacts-{timestamp}.csv/json` - Extracted contacts and social profiles
 
 ### Business Intelligence Reports
 ```bash

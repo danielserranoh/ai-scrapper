@@ -51,7 +51,7 @@ class PipelineManager:
         """Start a new crawling job"""
         # Create job
         job = CrawlJob(
-            job_id=job_id or self._generate_job_id(),
+            job_id=job_id or self._generate_job_id(domain),
             domain=domain,
             config=dict(self.config.__dict__)  # Convert to regular dict
         )
@@ -347,11 +347,22 @@ class PipelineManager:
         
         return []
     
-    def _generate_job_id(self) -> str:
-        """Generate unique job ID"""
-        from utils.common import get_timestamp_string
-        timestamp = get_timestamp_string()
-        return f"job_{timestamp}"
+    def _generate_job_id(self, domain: str = None) -> str:
+        """Generate unique job ID with format: job_{domain}_YYMMDDHH"""
+        from datetime import datetime
+
+        # Generate timestamp in YYMMDDHH format
+        now = datetime.now()
+        timestamp = now.strftime("%y%m%d%H")
+
+        if domain:
+            # Clean domain for filename (remove protocol, www, and special chars)
+            clean_domain = domain.replace('https://', '').replace('http://', '').replace('www.', '')
+            clean_domain = clean_domain.replace('.', '_').replace(':', '_').replace('/', '_')
+            return f"job_{clean_domain}_{timestamp}"
+        else:
+            # Fallback for cases where domain is not available
+            return f"job_unknown_{timestamp}"
     
     def get_job_status(self) -> Optional[Dict[str, Any]]:
         """Get current job status"""

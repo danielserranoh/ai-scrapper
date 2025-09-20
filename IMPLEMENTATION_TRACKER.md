@@ -146,6 +146,18 @@
   - ✅ Verified fix extracts 4/5 emails from previously failing page
   - ✅ Applied same logic to both text extraction and markdown conversion
 
+**✅ Recently Completed (September 20, 2025)**:
+- ✅ **Hybrid File Naming Convention** - COMPLETED
+  - Location: `exporters/base.py:50` - Core filename generation logic
+  - Location: `storage/data_store.py:28` - Helper method for consistent naming
+  - Issue: Complex dual-timestamp naming was confusing users
+  - ✅ Implemented hybrid approach: keep job IDs internal, clean export filenames
+  - ✅ New format: `{domain}-{content_type}-{timestamp}.ext` (e.g., `cs_stanford_edu-pages-25092003.csv`)
+  - ✅ Updated all 5 DataStore file creation methods to use new naming
+  - ✅ Preserved backward compatibility: all CLI commands work unchanged
+  - ✅ Updated documentation examples across README, TESTING_PLAN, analyze_results
+  - ✅ Verified with live crawl: generates clean, identifiable filenames
+
 **Next Session Priorities**:
 - 📋 **Improve checkpointing with stage-level recovery**
   - Location: `storage/checkpoints.py` - CheckpointManager
@@ -174,11 +186,12 @@
 - ✅ Performance impact minimal (<20% vs baseline)
 
 **Current Todo List (Active Session)**:
-✅ **Completed in this session (September 17, 2025)**:
-- Email extraction debugging and fix for non-standard page layouts
-- Content extraction pipeline improvement with fallback strategy
-- Verified fix works for angie-higuchi researcher profile page
-- All major bugs identified and resolved
+✅ **Completed in this session (September 20, 2025)**:
+- Hybrid file naming convention implementation
+- Updated job ID generation and export filename logic
+- Documentation updates across README, TESTING_PLAN, analyze_results
+- Backward compatibility preservation for all CLI commands
+- Live testing and verification with Stanford CS crawl
 
 **Next Session Priorities**:
 - Stage-level checkpointing improvements
@@ -222,6 +235,6 @@
 - ✅ Function naming: Pipeline-aware, maintainable naming conventions
 - ✅ Enhanced Features: Production-ready implementation
 
-**Last Updated**: September 17, 2025 (Email extraction fix for non-standard page layouts completed)
-**Current Focus**: Phase 3 complete - Production-ready with advanced business intelligence, real-time monitoring, clean export architecture, and robust email extraction
-**Session Status**: Critical email extraction bug fixed - content extraction now handles non-standard university page layouts correctly
+**Last Updated**: September 20, 2025 (Hybrid file naming convention implementation completed)
+**Current Focus**: Phase 3 complete - Production-ready with advanced business intelligence, real-time monitoring, clean export architecture, and user-friendly file naming
+**Session Status**: File naming convention improved - clean, identifiable filenames while preserving full backward compatibility

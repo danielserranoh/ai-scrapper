@@ -465,9 +465,9 @@ The crawler saves results in the `data/output/` directory:
 ls -la data/output/
 
 # Look for files like:
-# - [job_id]_pages_[timestamp].csv
-# - [job_id]_pages_[timestamp].json
-# - [job_id]_analytics_[timestamp].json (if created)
+# - {domain}-pages-{timestamp}.csv
+# - {domain}-pages-{timestamp}.json
+# - {domain}-analysis-{timestamp}.json (if created)
 ```
 
 ## What to Look For

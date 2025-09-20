@@ -321,10 +321,10 @@ def cli(ctx, verbose):
     Examples:
       crawl harvard.edu                    # Crawl Harvard University
       crawl stanford.edu --delay 2 -v     # Crawl with 2s delay and verbose logging
-      resume job_20240101_120000           # Resume paused job
+      resume job_stanford_edu_24091412           # Resume paused job
       status                               # List all jobs
-      export job_20240101_120000 --csv     # Export to CSV format
-      get-report job_20240101_120000       # Generate BI reports
+      export job_stanford_edu_24091412 --csv     # Export to CSV format
+      get-report job_stanford_edu_24091412       # Generate BI reports
     """
     ctx.ensure_object(dict)
     ctx.obj['verbose'] = verbose
