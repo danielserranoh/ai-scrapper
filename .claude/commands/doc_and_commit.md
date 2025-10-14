@@ -1,13 +1,16 @@
-# Update Documentation and Commit
+---
+name: doc_and_commit
+description: Update documentation and create automated commit in one workflow
+model: claude-sonnet-4-5-20250929
+---
 
-Please update the documentation and commit to the GitHub.
+## Execution:
 
-Follow these steps:
+**Phase 1:** Execute `/update_docs` command with full session context
 
-1. Update the README.md with the latest information
-2. Update the progress achieved in the file IMPLEMENTATION_TRACKER.md
-3. Ensure code passes linting and type checking
-4. Use `gh` to commit the changes. Create a descriptive commit message
-5. Push and create a PR
+**Phase 2:** Invoke `@committer` agent with 1-2 sentence session summary
 
-Remember to use the GitHub CLI (`gh`) for all GitHub-related tasks.
+## Error Handling:
+- If update_docs fails → stop, don't commit
+- If committer fails → docs staged, user can manually commit or retry
+- If Ollama not running → committer will notify and use fallback

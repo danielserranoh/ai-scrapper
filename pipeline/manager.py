@@ -365,12 +365,12 @@ class PipelineManager:
             return f"job_unknown_{timestamp}"
     
     def get_job_status(self) -> Optional[Dict[str, Any]]:
-        """Get current job status"""
+        """Get current job status with Phase 3B quality metrics"""
         if not self.current_job:
             return None
-        
+
         counts = self.url_queue.get_counts() if self.url_queue else {}
-        
+
         status = {
             'job_id': self.current_job.job_id,
             'domain': self.current_job.domain,
@@ -381,13 +381,53 @@ class PipelineManager:
             'failed_pages': self.current_job.failed_pages,
             'queue_status': counts,
             'started_at': self.current_job.started_at.isoformat() if self.current_job.started_at else None,
-            'last_checkpoint': self.last_checkpoint.isoformat() if self.last_checkpoint else None
+            'last_checkpoint': self.last_checkpoint.isoformat() if self.last_checkpoint else None,
+            # Phase 3B: Extraction quality metrics
+            'extraction_quality': self._get_extraction_quality_metrics()
         }
-        
+
         if self.start_time:
             status['elapsed_seconds'] = (get_current_time() - self.start_time).total_seconds()
-        
+
         return status
+
+    def _get_extraction_quality_metrics(self) -> Dict[str, Any]:
+        """Calculate extraction quality metrics (Phase 3B)"""
+        if not self.url_queue:
+            return {}
+
+        # Load completed pages from the queue
+        processed_pages = self.url_queue._load_pages(self.url_queue.completed_file)
+        if not processed_pages:
+            return {
+                'total_pages': 0,
+                'browser_fetch_count': 0,
+                'browser_fetch_percentage': 0.0,
+                'average_quality_score': 0.0,
+                'high_quality_pages': 0,
+                'extraction_methods': {}
+            }
+
+        # Calculate metrics
+        browser_count = sum(1 for p in processed_pages if p.browser_fetched)
+        quality_scores = [p.markdown_quality_score for p in processed_pages if p.markdown_quality_score is not None]
+        high_quality = sum(1 for score in quality_scores if score >= 0.7)
+
+        # Count extraction methods
+        extraction_methods = {}
+        for page in processed_pages:
+            method = page.extraction_method or 'unknown'
+            extraction_methods[method] = extraction_methods.get(method, 0) + 1
+
+        return {
+            'total_pages': len(processed_pages),
+            'browser_fetch_count': browser_count,
+            'browser_fetch_percentage': (browser_count / len(processed_pages) * 100) if processed_pages else 0.0,
+            'average_quality_score': (sum(quality_scores) / len(quality_scores)) if quality_scores else 0.0,
+            'high_quality_pages': high_quality,
+            'high_quality_percentage': (high_quality / len(quality_scores) * 100) if quality_scores else 0.0,
+            'extraction_methods': extraction_methods
+        }
     
     def list_jobs(self) -> List[Dict[str, Any]]:
         """List all available jobs"""

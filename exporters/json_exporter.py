@@ -42,7 +42,11 @@ class JSONExporter(BaseExporter):
                 'retry_count': page.retry_count,
                 'internal_links': list(page.internal_links),
                 'external_links': list(page.external_links),
-                'analysis_results': page.analysis_results
+                'analysis_results': page.analysis_results,
+                # Phase 3B: Extraction quality metadata
+                'extraction_method': page.extraction_method,
+                'browser_fetched': page.browser_fetched,
+                'markdown_quality_score': page.markdown_quality_score
             }
             pages_data.append(page_dict)
 

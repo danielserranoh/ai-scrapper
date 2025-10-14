@@ -52,7 +52,9 @@ class DataStore:
                     'fetched_at', 'processed_at', 'analyzed_at', 'error_message', 'retry_count',
                     'internal_links_count', 'external_links_count', 'emails_count',
                     'social_profiles_count', 'page_type', 'funding_references',
-                    'collaboration_indicators', 'technology_transfer', 'industry_connections'
+                    'collaboration_indicators', 'technology_transfer', 'industry_connections',
+                    # Phase 3B: Extraction quality metadata
+                    'extraction_method', 'browser_fetched', 'markdown_quality'
                 ]
                 
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -87,7 +89,11 @@ class DataStore:
                         'funding_references': content_indicators.get('funding_references', 0),
                         'collaboration_indicators': content_indicators.get('collaboration_indicators', 0),
                         'technology_transfer': content_indicators.get('technology_transfer', 0),
-                        'industry_connections': content_indicators.get('industry_connections', 0)
+                        'industry_connections': content_indicators.get('industry_connections', 0),
+                        # Phase 3B: Extraction quality metadata
+                        'extraction_method': page.extraction_method or 'unknown',
+                        'browser_fetched': 'yes' if page.browser_fetched else 'no',
+                        'markdown_quality': f"{page.markdown_quality_score:.2f}" if page.markdown_quality_score is not None else ''
                     }
                     writer.writerow(row)
             

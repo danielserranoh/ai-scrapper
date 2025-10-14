@@ -318,10 +318,12 @@ class URLQueue:
                     discovered_at=datetime.fromisoformat(page_data['discovered_at']) if page_data.get('discovered_at') else get_current_time()
                 )
                 
-                # Restore all optional fields
-                for field in ['fetched_at', 'processed_at', 'status_code', 'content_type', 
+                # Restore all optional fields (including Phase 3B fields)
+                for field in ['fetched_at', 'processed_at', 'status_code', 'content_type',
                              'content_length', 'html_content', 'title', 'clean_content',
-                             'markdown_content', 'error_message', 'retry_count', 'max_retries']:
+                             'markdown_content', 'error_message', 'retry_count', 'max_retries',
+                             'extraction_method', 'browser_fetched', 'markdown_quality_score',
+                             'cleaned_html', 'crawl4ai_markdown']:
                     if field in page_data and page_data[field] is not None:
                         if field in ['fetched_at', 'processed_at']:
                             setattr(page, field, datetime.fromisoformat(page_data[field]))

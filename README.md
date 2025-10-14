@@ -38,6 +38,9 @@ A business intelligence tool for extracting comprehensive information from unive
 
 ## What It Does
 
+- **Bot protection handling**: Automatic detection and browser fallback for Radware, Cloudflare, hCaptcha, reCAPTCHA
+- **Hybrid fetching**: Fast HTTP requests for normal sites, browser automation for bot-protected/JS-heavy sites
+- **Content quality tracking**: 0-1 scoring system with extraction method transparency
 - **Advanced URL structure analysis**: Pattern recognition, academic year extraction, path analysis
 - **Intelligent asset categorization**: Documents, presentations, media, code repositories (8 categories)
 - **Robust contact extraction**: Emails, social media handles with department mapping, handles non-standard page layouts
@@ -45,9 +48,9 @@ A business intelligence tool for extracting comprehensive information from unive
 - **Granular page classification**: Main types + subtypes (faculty profiles, research centers, etc.)
 - **Semantic content analysis**: Academic disciplines, research methods, institutional roles
 - **Enhanced rate limiting**: Dynamic adaptation, blocking detection, graceful degradation
-- **Smart content extraction**: HTML to Markdown conversion with fallback strategies for diverse page structures
-- **Production-ready exports**: CSV/JSON with parsed and cleaned data
-- **Business Intelligence reports**: Comprehensive business intelligence analysis reports
+- **Smart content extraction**: Dual-path extraction (Crawl4AI + BeautifulSoup) with quality scoring
+- **Production-ready exports**: CSV/JSON with extraction metadata and quality metrics
+- **Real-time monitoring**: Progress tracking with speed, ETA, and quality statistics
 
 ## Architecture
 
@@ -56,13 +59,20 @@ Pipeline-based processing with recovery capabilities:
 
 ## Key Features
 
+### 🤖 Bot Protection & Browser Automation (v3.0 - NEW!)
+- **Automatic Bot Detection**: Identifies Radware, Cloudflare, hCaptcha, reCAPTCHA challenges
+- **Seamless Browser Fallback**: Crawl4AI + Playwright integration for bot-protected sites
+- **Hybrid Fetching Strategy**: Fast requests (95%+) with browser fallback when needed
+- **Memory Efficient**: Lazy browser initialization, automatic restarts every 100 fetches
+- **Quality Monitoring**: Track extraction method and content quality (0-1 score)
+
 ### 🎯 Enhanced Business Intelligence (v2.0)
 - **Advanced URL Structure Analysis**: Pattern recognition for faculty profiles, research projects, department pages
 - **Intelligent Asset Categorization**: 8 asset types including documents, presentations, media, code
 - **Semantic Content Analysis**: Academic disciplines, research methods, institutional roles detection
 - **Enhanced Page Classification**: Main types + granular subtypes for precise categorization
 
-### 🛡️ Production-Ready Crawling  
+### 🛡️ Production-Ready Crawling
 - **Enhanced Rate Limiting**: Dynamic delay adjustment based on response times and server conditions
 - **Blocking Detection & Mitigation**: 403/429 detection, rate limit headers analysis, graceful degradation
 - **4-Level Severity System**: normal → limited → throttled → blocked with appropriate responses
@@ -78,11 +88,13 @@ Pipeline-based processing with recovery capabilities:
 - **Modern CLI**: Click-based interface with clear command separation
 - **Recovery System**: Resume from any failure point with enhanced checkpointing
 - **Pipeline-aware Architecture**: Maintainable code with clear stage progression
-- **Smart Content Extraction**: BeautifulSoup + html2text with fallback strategies for diverse page structures
-- **Extensible Export System**: Pluggable format adapters (CSV, JSON, future: xlsx, md, txt)
+- **Dual Extraction Paths**: Crawl4AI markdown (browser) vs BeautifulSoup (fast) with automatic selection
+- **Quality Scoring**: 0-1 content quality metric based on structure, length, and formatting
+- **Extensible Export System**: Pluggable format adapters (CSV, JSON) with extraction metadata
+- **Enhanced Exports**: Include extraction_method, browser_fetched, markdown_quality fields
 - **Clean Data Organization**: Separate crawling outputs from business intelligence reports
 - **File-based Storage**: Simple JSON persistence optimized for development and deployment
-- **Real-time Progress**: Enhanced dashboard with speed, ETA, and queue status at each checkpoint
+- **Real-time Progress**: Enhanced dashboard with speed, ETA, quality stats, and queue status at each checkpoint
 
 ## Export System
 
