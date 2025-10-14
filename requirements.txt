@@ -23,9 +23,11 @@ pytest  # For testing
 pytest-mock  # For mocking in tests
 
 
-# Phase 2+ dependencies (optional for now)
-# crawl4ai==0.7.4  # Advanced content extraction
+# Phase 3A: Browser automation for bot-protected sites
+crawl4ai>=0.3.74  # Advanced content extraction with browser support
+playwright>=1.40.0  # Browser automation (required by Crawl4AI)
+
+# Phase 4+ dependencies (optional for future)
 # markdownify==0.11.6  # Alternative markdown converter
 # scrapy==2.11.0  # Alternative crawling framework
-# playwright==1.40.0  # Browser automation
-# selenium==4.15.2  # Browser automation
+# selenium==4.15.2  # Alternative browser automation

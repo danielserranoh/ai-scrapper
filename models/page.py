@@ -48,7 +48,14 @@ class Page:
     title: Optional[str] = None
     clean_content: Optional[str] = None
     markdown_content: Optional[str] = None
-    
+
+    # Browser/Crawl4AI-specific content (Phase 3A/3B)
+    extraction_method: Optional[str] = None  # "requests" | "browser"
+    browser_fetched: bool = False
+    cleaned_html: Optional[str] = None  # Crawl4AI's cleaned HTML
+    crawl4ai_markdown: Optional[str] = None  # Crawl4AI's pre-generated markdown
+    markdown_quality_score: Optional[float] = None  # 0-1 quality indicator
+
     # Links and relationships
     internal_links: Set[str] = field(default_factory=set)
     external_links: Set[str] = field(default_factory=set)

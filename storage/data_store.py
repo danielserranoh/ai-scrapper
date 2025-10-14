@@ -15,16 +15,32 @@ class DataStore:
     """Handles data storage and export operations"""
     
     def __init__(self, base_dir: str = "data/output"):
+        """Initialize DataStore
+
+        Args:
+            base_dir: Directory for crawling outputs (pages.csv, contacts.csv, etc.)
+                     For business intelligence reports, use separate BI tools.
+        """
         self.base_dir = Path(base_dir)
         self.base_dir.mkdir(parents=True, exist_ok=True)
         self.logger = logging.getLogger(__name__)
+
+    def _generate_filename(self, job_id: str, data_type: str, extension: str) -> str:
+        """Generate standardized filename with format: {domain}-{content_type}-{timestamp}.ext"""
+        # Extract domain and timestamp from job_id format: job_{domain}_{timestamp}
+        if job_id.startswith('job_'):
+            parts = job_id[4:].rsplit('_', 1)  # Remove 'job_' prefix and split from right
+            if len(parts) == 2:
+                domain, timestamp = parts
+                return f"{domain}-{data_type}-{timestamp}.{extension}"
+
+        # Fallback for unexpected job_id format
+        return f"{job_id}_{data_type}.{extension}"
         
     def save_pages_csv(self, job_id: str, pages: List[Page], filename: str = None) -> str:
         """Save pages data to CSV file"""
         if not filename:
-            from config import get_current_time
-            timestamp = get_current_time().strftime("%Y%m%d_%H%M%S")
-            filename = f"{job_id}_pages_{timestamp}.csv"
+            filename = self._generate_filename(job_id, "pages", "csv")
         
         csv_path = self.base_dir / filename
         
@@ -36,7 +52,9 @@ class DataStore:
                     'fetched_at', 'processed_at', 'analyzed_at', 'error_message', 'retry_count',
                     'internal_links_count', 'external_links_count', 'emails_count',
                     'social_profiles_count', 'page_type', 'funding_references',
-                    'collaboration_indicators', 'technology_transfer', 'industry_connections'
+                    'collaboration_indicators', 'technology_transfer', 'industry_connections',
+                    # Phase 3B: Extraction quality metadata
+                    'extraction_method', 'browser_fetched', 'markdown_quality'
                 ]
                 
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
@@ -71,7 +89,11 @@ class DataStore:
                         'funding_references': content_indicators.get('funding_references', 0),
                         'collaboration_indicators': content_indicators.get('collaboration_indicators', 0),
                         'technology_transfer': content_indicators.get('technology_transfer', 0),
-                        'industry_connections': content_indicators.get('industry_connections', 0)
+                        'industry_connections': content_indicators.get('industry_connections', 0),
+                        # Phase 3B: Extraction quality metadata
+                        'extraction_method': page.extraction_method or 'unknown',
+                        'browser_fetched': 'yes' if page.browser_fetched else 'no',
+                        'markdown_quality': f"{page.markdown_quality_score:.2f}" if page.markdown_quality_score is not None else ''
                     }
                     writer.writerow(row)
             
@@ -85,9 +107,7 @@ class DataStore:
     def save_pages_json(self, job_id: str, pages: List[Page], filename: str = None) -> str:
         """Save pages data to JSON file"""
         if not filename:
-            from config import get_current_time
-            timestamp = get_current_time().strftime("%Y%m%d_%H%M%S")
-            filename = f"{job_id}_pages_{timestamp}.json"
+            filename = self._generate_filename(job_id, "pages", "json")
         
         json_path = self.base_dir / filename
         
@@ -105,9 +125,7 @@ class DataStore:
     def save_contacts_csv(self, job_id: str, pages: List[Page], filename: str = None) -> str:
         """Save extracted contacts to CSV file"""
         if not filename:
-            from config import get_current_time
-            timestamp = get_current_time().strftime("%Y%m%d_%H%M%S")
-            filename = f"{job_id}_contacts_{timestamp}.csv"
+            filename = self._generate_filename(job_id, "contacts", "csv")
         
         csv_path = self.base_dir / filename
         
@@ -152,14 +170,12 @@ class DataStore:
             self.logger.error(f"Failed to save contacts CSV: {e}")
             raise
     
-    def save_metrics_json(self, job_id: str, metrics: SiteMetrics, 
+    def save_metrics_json(self, job_id: str, metrics: SiteMetrics,
                          subdomain_metrics: List[SubdomainAnalytics] = None,
                          filename: str = None) -> str:
         """Save site metrics to JSON file"""
         if not filename:
-            from config import get_current_time
-            timestamp = get_current_time().strftime("%Y%m%d_%H%M%S")
-            filename = f"{job_id}_metrics_{timestamp}.json"
+            filename = self._generate_filename(job_id, "metrics", "json")
         
         json_path = self.base_dir / filename
         
@@ -183,9 +199,8 @@ class DataStore:
     
     def create_summary_report(self, job_id: str, job: CrawlJob, pages: List[Page]) -> str:
         """Create a comprehensive summary report"""
-        from utils.common import get_timestamp_string
-        timestamp = get_timestamp_string()
-        report_path = self.base_dir / f"{job_id}_summary_{timestamp}.json"
+        filename = self._generate_filename(job_id, "summary", "json")
+        report_path = self.base_dir / filename
         
         # Calculate statistics
         total_pages = len(pages)
@@ -288,9 +303,7 @@ class DataStore:
     def save_analytics_summary(self, job_id: str, analytics_data: dict, filename: str = None) -> str:
         """Save analytics summary to JSON file"""
         if not filename:
-            from utils.common import get_timestamp_string
-            timestamp = get_timestamp_string()
-            filename = f"{job_id}_analytics_{timestamp}.json"
+            filename = self._generate_filename(job_id, "analysis", "json")
         
         analytics_path = self.base_dir / filename
         

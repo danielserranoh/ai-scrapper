@@ -12,6 +12,77 @@ from models.page import Page, PageStatus
 from config import CrawlConfig
 from utils.time import get_current_time
 
+# Import browser fetcher (lazy to avoid import overhead if not needed)
+_browser_fetcher_pool = None
+
+
+class BotDetector:
+    """Detects bot protection and challenge pages"""
+
+    CHALLENGE_DOMAINS = {
+        'validate.perfdrive.com',  # Radware Bot Manager
+        'challenges.cloudflare.com',  # Cloudflare
+        'www.google.com/recaptcha',  # reCAPTCHA
+        'hcaptcha.com',  # hCaptcha
+        'geo.captcha-delivery.com',  # Generic CAPTCHA
+    }
+
+    CHALLENGE_INDICATORS = [
+        'bot detection',
+        'bot manager',
+        'automated access',
+        'verify you are human',
+        'cloudflare',
+        'checking your browser',
+        'enable javascript',
+        'radware',
+        'please verify',
+        'security check',
+        'access denied',
+        'captcha',
+    ]
+
+    @staticmethod
+    def is_bot_challenge_response(response: requests.Response) -> bool:
+        """Detect if HTTP response is a bot challenge page"""
+        # Check for redirect to challenge domain
+        final_url = response.url.lower()
+        if any(domain in final_url for domain in BotDetector.CHALLENGE_DOMAINS):
+            return True
+
+        # Check for challenge indicators in content
+        if response.text:
+            content_lower = response.text.lower()
+            # Need at least 2 indicators to avoid false positives
+            matches = sum(1 for indicator in BotDetector.CHALLENGE_INDICATORS if indicator in content_lower)
+            if matches >= 2:
+                return True
+
+        # Check for specific status codes + headers combination
+        if response.status_code == 403:
+            server = response.headers.get('server', '').lower()
+            if 'cloudflare' in server or 'radware' in server:
+                return True
+
+        return False
+
+    @staticmethod
+    def should_use_browser(page: Page) -> bool:
+        """Decide if page needs browser-based fetching"""
+        # Always use browser if previous attempt detected bot challenge
+        if page.error_message:
+            if 'bot challenge' in page.error_message.lower():
+                return True
+            if 'bot detection' in page.error_message.lower():
+                return True
+
+        # Use browser if retry count > 1 and still failing with 403/429
+        if page.retry_count > 1 and page.status == PageStatus.FAILED:
+            if page.status_code in [403, 429]:
+                return True
+
+        return False
+
 
 class AdaptiveRateLimiter:
     """Manages request timing with adaptive delays and intelligent blocking detection"""
@@ -184,19 +255,27 @@ class AdaptiveRateLimiter:
 
 class HTTPFetcherStage(PipelineStage):
     """Fetches web pages with adaptive rate limiting and error handling"""
-    
+
     def __init__(self, config: CrawlConfig):
         super().__init__("http_fetcher", config.__dict__)
         self.crawl_config = config
-        
+
         # Rate limiters per domain
         self.rate_limiters: Dict[str, AdaptiveRateLimiter] = {}
-        
+
         # HTTP session with retries
         self.session = self._create_session()
-        
+
         # Blocking detection
         self.blocked_domains: Dict[str, datetime] = {}
+
+        # Bot detection
+        self.detector = BotDetector()
+
+        # Browser fetcher pool (lazy initialization)
+        self.browser_pool = None
+        self.browser_fetch_count = 0
+        self.total_fetch_count = 0
     
         
     def _create_session(self) -> requests.Session:
@@ -226,14 +305,66 @@ class HTTPFetcherStage(PipelineStage):
         })
         
         return session
-    
+
+    def _get_browser_pool(self):
+        """Lazy initialize browser pool"""
+        if self.browser_pool is None:
+            # Check if browser fallback is enabled
+            if not getattr(self.crawl_config, 'enable_browser_fallback', True):
+                return None
+
+            self.logger.info("Initializing browser fetcher pool")
+            from pipeline.browser_fetcher import BrowserFetcherPool
+
+            pool_size = getattr(self.crawl_config, 'browser_pool_size', 1)
+            self.browser_pool = BrowserFetcherPool(self.crawl_config, pool_size=pool_size)
+
+        return self.browser_pool
+
+    def _fetch_with_browser(self, page: Page, job: CrawlJob) -> Page:
+        """Fetch page using browser automation"""
+        try:
+            pool = self._get_browser_pool()
+            if pool is None:
+                page.mark_failed("Browser fallback disabled in configuration")
+                return page
+
+            page = pool.fetch(page, job)
+            self.browser_fetch_count += 1
+
+            # Mark extraction method for requests-based fetches
+            if page.status == PageStatus.FETCHED and not page.extraction_method:
+                page.extraction_method = "browser"
+
+            # Log browser usage statistics
+            browser_percentage = (
+                (self.browser_fetch_count / self.total_fetch_count * 100)
+                if self.total_fetch_count > 0
+                else 0
+            )
+            self.logger.info(
+                f"Browser fetches: {self.browser_fetch_count}/{self.total_fetch_count} "
+                f"({browser_percentage:.1f}%)"
+            )
+
+        except Exception as e:
+            self.logger.error(f"Browser fetch failed for {page.url}: {e}")
+            page.mark_failed(f"Browser fetch error: {str(e)}")
+
+        return page
+
     def process_item(self, page: Page, job: CrawlJob) -> Page:
-        """Fetch HTML content for a page"""
+        """Fetch HTML content for a page with automatic browser fallback"""
         if page.status != PageStatus.DISCOVERED:
             return page
-        
+
+        # Check if we should use browser directly (based on previous failures)
+        if self.detector.should_use_browser(page):
+            self.logger.info(f"Using browser fetcher for {page.url} (previous bot challenge)")
+            return self._fetch_with_browser(page, job)
+
         domain = urlparse(page.url).netloc
-        
+
         # Check if domain is temporarily blocked
         if self._is_domain_blocked(domain):
             self.logger.debug(f"Domain {domain} is temporarily blocked")
@@ -299,11 +430,20 @@ class HTTPFetcherStage(PipelineStage):
                 page.url = final_url
             
             if response.status_code == 200:
-                # Success
+                # Check for bot challenge in successful response
+                if self.detector.is_bot_challenge_response(response):
+                    self.logger.warning(f"Bot challenge detected for {page.url}, retrying with browser")
+                    page.error_message = "Bot challenge detected"
+                    page.status = PageStatus.DISCOVERED  # Reset for retry with browser
+                    return self._fetch_with_browser(page, job)
+
+                # Success - store content
                 page.html_content = response.text
                 page.status = PageStatus.FETCHED
+                page.extraction_method = "requests"  # Mark standard fetching
                 rate_limiter.on_success(response_time)
-                
+                self.total_fetch_count += 1
+
                 # Log additional insights in verbose mode
                 severity = rate_limiter.get_blocking_severity()
                 self.logger.debug(f"Successfully fetched {page.url} ({page.content_length} bytes, "
@@ -424,11 +564,18 @@ class HTTPFetcherStage(PipelineStage):
             return base_timeout
     
     def get_stats(self) -> Dict[str, any]:
-        """Get enhanced fetcher statistics with blocking intelligence"""
+        """Get enhanced fetcher statistics with blocking intelligence and browser usage"""
         stats = {
             'total_processed': self.processed_count,
             'total_failed': self.failed_count,
             'blocked_domains': len(self.blocked_domains),
+            'browser_fetches': self.browser_fetch_count,
+            'requests_fetches': self.total_fetch_count - self.browser_fetch_count,
+            'browser_percentage': (
+                (self.browser_fetch_count / self.total_fetch_count * 100)
+                if self.total_fetch_count > 0
+                else 0
+            ),
             'rate_limiter_status': {},
             'blocking_summary': {}
         }

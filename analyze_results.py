@@ -161,8 +161,8 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: python analyze_results.py <csv_file> [page_type]")
         print("\nExamples:")
-        print("  python analyze_results.py data/output/job_20240101_120000_pages_*.csv")
-        print("  python analyze_results.py data/output/job_20240101_120000_pages_*.csv faculty")
+        print("  python analyze_results.py data/output/cs_stanford_edu-pages-*.csv")
+        print("  python analyze_results.py data/output/cs_stanford_edu-pages-*.csv faculty")
         print("\nAvailable page types: faculty, research, department, contact, admissions, news, about, general")
         return
     

@@ -53,9 +53,16 @@ class CrawlConfig:
     # Storage settings
     checkpoint_interval: int = 100  # Save state every N processed items
     database_path: str = "data/crawler.db"
-    
+
     # Export settings
     export_formats: List[str] = field(default_factory=lambda: ['csv', 'json'])
+
+    # Browser automation settings (Phase 3A)
+    enable_browser_fallback: bool = True  # Enable browser for bot-protected sites
+    browser_pool_size: int = 1  # Number of concurrent browser instances
+    browser_timeout: int = 45  # Timeout for browser operations (seconds)
+    max_browser_retries: int = 2  # Retry attempts for browser fetches
+    browser_restart_interval: int = 100  # Restart browser after N fetches
     
     # Timezone settings
     timezone_offset_hours: int = 2  # Default to CEST (UTC+2)
@@ -74,7 +81,7 @@ class CrawlConfig:
     def from_domain(cls, domain: str) -> 'CrawlConfig':
         """Create domain-specific configuration"""
         config = cls()
-        
+
         # University-specific adjustments
         if 'harvard.edu' in domain or 'stanford.edu' in domain:
             # Large universities - more conservative
@@ -86,7 +93,13 @@ class CrawlConfig:
             config.base_delay = 0.5
             config.max_pages = 50_000
             config.max_subdomains = 20
-        
+        elif 'ue.edu.pe' in domain:
+            # Bot-protected site - more browser usage expected
+            config.base_delay = 3.0
+            config.max_pages = 10_000
+            config.browser_pool_size = 2  # More concurrent browsers
+            config.browser_timeout = 60  # Longer timeout for bot challenges
+
         return config
 
 
